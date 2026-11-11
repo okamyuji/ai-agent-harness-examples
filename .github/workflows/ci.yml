@@ -1,0 +1,51 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    uses: okamyuji/reusable-workflows/.github/workflows/go-ci.yml@v1
+    with:
+      working-directory: quality-gates/go
+
+  typescript:
+    uses: okamyuji/reusable-workflows/.github/workflows/node-ci.yml@v1
+    with:
+      node-version: "24"
+      working-directory: quality-gates/typescript
+
+  # The central python-ci has no working-directory input and dotnet-ci targets Godot, so these two run here.
+  harness:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: harness
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest -v test_harness.py
+
+  dotnet:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: quality-gates/dotnet
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet restore QualityGates.slnx --locked-mode
+      - run: dotnet format QualityGates.slnx --verify-no-changes --no-restore
+      - run: dotnet test QualityGates.slnx --no-restore
+
+  security:
+    uses: okamyuji/reusable-workflows/.github/workflows/security-scan.yml@v1

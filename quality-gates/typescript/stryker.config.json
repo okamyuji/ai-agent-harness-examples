@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "testRunner": "vitest",
+  "coverageAnalysis": "perTest",
+  "tsconfigFile": "tsconfig.stryker-skip.json",
+  "incremental": true,
+  "cleanTempDir": "always",
+  "concurrency": "50%",
+  "thresholds": { "high": 100, "low": 100, "break": 100 }
+}
